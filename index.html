@@ -33,7 +33,7 @@ body{background:#0d0a06;display:flex;justify-content:center;align-items:center;m
 @keyframes blink{0%,100%{opacity:0.15}50%{opacity:0.85}}
 
 /* CHOICES */
-#choices{position:absolute;bottom:150px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:9px;width:68%;opacity:0;pointer-events:none;transition:opacity 0.35s;}
+#choices{position:absolute;bottom:150px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:9px;width:auto;min-width:260px;max-width:68%;opacity:0;pointer-events:none;transition:opacity 0.35s;}
 #choices.show{opacity:1;pointer-events:all;}
 .choice-btn{background:rgba(10,7,4,0.84);border:1px solid rgba(196,133,106,0.42);border-radius:2px;padding:11px 20px;font-family:'Cormorant Garamond',serif;font-size:17px;color:rgba(253,246,236,0.9);cursor:pointer;text-align:center;transition:background 0.2s,border-color 0.2s,transform 0.12s;backdrop-filter:blur(8px);}
 .choice-btn:hover{background:rgba(196,133,106,0.18);border-color:var(--accent);transform:scale(1.015);}
@@ -96,10 +96,9 @@ body{background:#0d0a06;display:flex;justify-content:center;align-items:center;m
 /* Tap zones — landscape mobile only */
 @media(orientation:landscape) and (max-height:500px){
   #tap-left{position:absolute;left:0;top:0;width:35%;height:calc(100% - 108px);z-index:7;cursor:pointer;}
-  #tap-right{position:absolute;right:0;top:0;width:65%;height:calc(100% - 108px);z-index:7;cursor:pointer;}
 }
 @media(min-width:901px){
-  #tap-left,#tap-right{display:none;}
+  #tap-left{display:none;}
 }
 
 #tap-hint{position:absolute;left:0;top:0;width:35%;height:calc(100% - 148px);display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:8;opacity:0;transition:opacity 0.3s;}
@@ -152,15 +151,16 @@ body{background:#0d0a06;display:flex;justify-content:center;align-items:center;m
 
   /* choices */
   #choices{
-    width:70%;
+    width:auto;
+    max-width:58%;
+    min-width:260px;
     bottom:116px;
     gap:6px;
   }
-  .choice-btn{font-size:14px;padding:8px 12px;}
+  .choice-btn{font-size:13px;padding:8px 14px;white-space:nowrap;}
 
   /* tap zones match new textbox height */
   #tap-left{height:calc(100% - 108px);}
-  #tap-right{height:calc(100% - 108px);}
   #tap-hint{height:calc(100% - 108px);}
 
   /* chapter title */
@@ -191,6 +191,27 @@ body{background:#0d0a06;display:flex;justify-content:center;align-items:center;m
   #controls-close{font-size:13px;padding:7px 22px;}
 }
 
+
+/* FULLSCREEN BUTTON */
+#fullscreen-btn{
+  position:absolute;bottom:16px;left:16px;z-index:22;
+  background:transparent;
+  border:1px solid rgba(196,133,106,0.45);
+  padding:7px 18px;
+  font-family:'Cormorant Garamond',serif;font-size:14px;
+  color:rgba(253,246,236,0.7);cursor:pointer;border-radius:2px;
+  transition:background 0.2s,color 0.2s;letter-spacing:0.08em;
+  display:none;
+}
+#fullscreen-btn:hover{background:rgba(196,133,106,0.15);color:var(--cream);}
+@media(max-width:900px){
+  #fullscreen-btn{display:block;}
+  #controls-btn{bottom:16px;right:16px;}
+}
+@media(orientation:landscape) and (max-height:500px){
+  #fullscreen-btn{bottom:8px;left:8px;font-size:11px;padding:5px 12px;}
+}
+
 </style>
 </head>
 <body>
@@ -215,6 +236,7 @@ body{background:#0d0a06;display:flex;justify-content:center;align-items:center;m
     <div id="title-sub">a story about searching for what was already found</div>
     <button id="start-btn">Begin</button>
     <button id="controls-btn">Controls</button>
+    <button id="fullscreen-btn">&#x26F6; Fullscreen</button>
   </div>
 
   <!-- Controls Modal -->
@@ -240,6 +262,11 @@ body{background:#0d0a06;display:flex;justify-content:center;align-items:center;m
       <div class="ctrl-row">
         <span class="ctrl-key">Click</span>
         <span class="ctrl-desc">Advance / select choice</span>
+      </div>
+      <div class="ctrl-divider"></div>
+      <div class="ctrl-row">
+        <span class="ctrl-key" style="min-width:auto;padding:0 8px;font-size:11px;">&#x26F6;</span>
+        <span class="ctrl-desc">Fullscreen (mobile button)</span>
       </div>
       <button id="controls-close">Got it</button>
     </div>
@@ -273,7 +300,6 @@ body{background:#0d0a06;display:flex;justify-content:center;align-items:center;m
 
   <!-- Tap zones for mobile -->
   <div id="tap-left"></div>
-  <div id="tap-right"></div>
   <div id="tap-hint"><div id="tap-hint-icon">&#8592; back</div></div>
 
   <!-- Consequence flash -->
@@ -986,6 +1012,32 @@ function restartGame() {
   currentScene = 'ch1_intro'; renderScene();
 }
 
+
+// ── FULLSCREEN ────────────────────────────────────────────────────
+function enterFullscreen() {
+  var el = document.documentElement;
+  if (el.requestFullscreen) el.requestFullscreen();
+  else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+  else if (el.mozRequestFullScreen) el.mozRequestFullScreen();
+  else if (el.msRequestFullscreen) el.msRequestFullscreen();
+}
+function exitFullscreen() {
+  if (document.exitFullscreen) document.exitFullscreen();
+  else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+  else if (document.mozCancelFullScreen) document.mozCancelFullScreen();
+}
+function toggleFullscreen() {
+  var isFs = document.fullscreenElement || document.webkitFullscreenElement;
+  if (isFs) { exitFullscreen(); updateFsBtn(false); }
+  else { enterFullscreen(); updateFsBtn(true); }
+}
+function updateFsBtn(isFs) {
+  var btn = document.getElementById('fullscreen-btn');
+  if (btn) btn.innerHTML = isFs ? '&#x2715; Exit Full' : '&#x26F6; Fullscreen';
+}
+document.addEventListener('fullscreenchange', function(){ updateFsBtn(!!document.fullscreenElement); });
+document.addEventListener('webkitfullscreenchange', function(){ updateFsBtn(!!document.webkitFullscreenElement); });
+
 document.addEventListener('DOMContentLoaded', function(){
   // Try to lock orientation to landscape on mobile
   if (screen.orientation && screen.orientation.lock) {
@@ -998,19 +1050,17 @@ document.addEventListener('DOMContentLoaded', function(){
   gid('restart-btn').addEventListener('click', restartGame);
   gid('textbox').addEventListener('click', advanceScene);
   gid('controls-btn').addEventListener('click', function(){ gid('controls-modal').classList.add('show'); });
+  var fsBtn = gid('fullscreen-btn');
+  if (fsBtn) fsBtn.addEventListener('click', function(){ toggleFullscreen(); });
   gid('controls-close').addEventListener('click', function(){ gid('controls-modal').classList.remove('show'); });
   gid('controls-modal').addEventListener('click', function(e){ if(e.target===this) this.classList.remove('show'); });
   gid('wip-modal').addEventListener('click', function(e){ if(e.target===this) this.classList.remove('show'); });
 
   // Mobile tap zones
-  var tapLeft = gid('tap-left'), tapRight = gid('tap-right');
+  var tapLeft = gid('tap-left');
   if (tapLeft) {
     tapLeft.addEventListener('click', function(){ goBack(); });
     tapLeft.addEventListener('touchend', function(e){ e.preventDefault(); goBack(); },{passive:false});
-  }
-  if (tapRight) {
-    tapRight.addEventListener('click', function(){ advanceScene(); });
-    tapRight.addEventListener('touchend', function(e){ e.preventDefault(); advanceScene(); },{passive:false});
   }
 
   // Prevent double-fire on textbox for mobile
