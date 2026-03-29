@@ -93,30 +93,10 @@ body{background:#0d0a06;display:flex;justify-content:center;align-items:center;m
 
 
 /* ── MOBILE RESPONSIVE ───────────────────────────────────────── */
-@media(max-width:900px){
-  .char-sprite{height:55%;bottom:136px;}
-  #spr-left{left:0%;}
-  #spr-right{right:0%;}
-  #textbox{padding:14px 18px 12px;min-height:148px;}
-  #speaker{font-size:12px;}
-  #dialogue{font-size:16px;line-height:1.65;min-height:70px;}
-  #choices{width:88%;bottom:158px;gap:8px;}
-  .choice-btn{font-size:15px;padding:10px 14px;}
-  #chapter-name{font-size:28px;}
-  #title-main{font-size:38px;}
-  #title-sub{font-size:10px;letter-spacing:0.22em;}
-  #start-btn{font-size:16px;padding:12px 36px;margin-top:32px;}
-  #controls-btn{font-size:12px;padding:6px 14px;bottom:12px;right:12px;}
-  #ending-title{font-size:24px;}
-  #ending-text{font-size:14px;line-height:1.75;}
-  #wip-box{padding:32px 28px;max-width:90vw;}
-  #wip-title{font-size:22px;}
-  #wip-body{font-size:14px;}
-  #controls-box{padding:28px 24px;min-width:0;width:88vw;}
-  #next-hint{font-size:9px;bottom:10px;right:14px;}
-  /* tap zones */
-  #tap-left{position:absolute;left:0;top:0;width:35%;height:calc(100% - 148px);z-index:7;cursor:pointer;}
-  #tap-right{position:absolute;right:0;top:0;width:65%;height:calc(100% - 148px);z-index:7;cursor:pointer;}
+/* Tap zones — landscape mobile only */
+@media(orientation:landscape) and (max-height:500px){
+  #tap-left{position:absolute;left:0;top:0;width:35%;height:calc(100% - 108px);z-index:7;cursor:pointer;}
+  #tap-right{position:absolute;right:0;top:0;width:65%;height:calc(100% - 108px);z-index:7;cursor:pointer;}
 }
 @media(min-width:901px){
   #tap-left,#tap-right{display:none;}
@@ -125,9 +105,107 @@ body{background:#0d0a06;display:flex;justify-content:center;align-items:center;m
 #tap-hint{position:absolute;left:0;top:0;width:35%;height:calc(100% - 148px);display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:8;opacity:0;transition:opacity 0.3s;}
 #tap-hint.flash{opacity:1;}
 #tap-hint-icon{font-size:22px;color:rgba(196,133,106,0.55);font-family:'Nunito',sans-serif;letter-spacing:0.05em;}
+
+/* ── ORIENTATION & LAYOUT ─────────────────────────────────────── */
+/* Portrait phones: show rotate prompt */
+#rotate-prompt{
+  display:none;
+  position:fixed;inset:0;z-index:999;
+  background:#0d0a06;
+  flex-direction:column;align-items:center;justify-content:center;gap:16px;
+}
+#rotate-prompt svg{animation:spin 2s linear infinite;}
+@keyframes spin{0%{transform:rotate(0deg)}50%{transform:rotate(90deg)}100%{transform:rotate(90deg)}to{transform:rotate(0deg)}}
+#rotate-prompt p{font-family:'Cormorant Garamond',serif;font-size:20px;font-style:italic;color:rgba(253,246,236,0.75);text-align:center;letter-spacing:0.06em;}
+@media(orientation:portrait) and (max-width:900px){
+  #rotate-prompt{display:flex;}
+  #game{display:none;}
+}
+@media(orientation:landscape) and (max-width:900px){
+  #rotate-prompt{display:none;}
+  #game{display:block;}
+}
+
+/* ── LANDSCAPE MOBILE LAYOUT ──────────────────────────────────── */
+@media(orientation:landscape) and (max-height:500px){
+  #game{
+    width:100vw;
+    height:100dvh;
+    border-radius:0;
+    box-shadow:none;
+  }
+  #bg-img,#bg-canvas{width:100%;height:100%;object-fit:cover;}
+
+  /* smaller sprites so they don't eat the whole screen */
+  .char-sprite{height:58%;bottom:108px;}
+  #spr-left{left:1%;}
+  #spr-right{right:1%;}
+
+  /* compact textbox */
+  #textbox{
+    min-height:108px;
+    padding:10px 16px 10px;
+  }
+  #speaker{font-size:11px;margin-bottom:4px;min-height:14px;}
+  #dialogue{font-size:14px;line-height:1.55;min-height:52px;}
+  #next-hint{font-size:8px;bottom:8px;right:12px;}
+
+  /* choices */
+  #choices{
+    width:70%;
+    bottom:116px;
+    gap:6px;
+  }
+  .choice-btn{font-size:14px;padding:8px 12px;}
+
+  /* tap zones match new textbox height */
+  #tap-left{height:calc(100% - 108px);}
+  #tap-right{height:calc(100% - 108px);}
+  #tap-hint{height:calc(100% - 108px);}
+
+  /* chapter title */
+  #chapter-name{font-size:26px;}
+  #chapter-num{font-size:10px;}
+
+  /* title screen */
+  #title-main{font-size:34px;}
+  #title-sub{font-size:9px;letter-spacing:0.2em;margin-top:6px;}
+  #start-btn{font-size:14px;padding:10px 28px;margin-top:20px;}
+  #controls-btn{font-size:11px;padding:5px 12px;bottom:8px;right:8px;}
+
+  /* ending screen */
+  #ending-title{font-size:22px;margin-bottom:12px;}
+  #ending-text{font-size:13px;line-height:1.65;margin-bottom:20px;max-width:72vw;}
+  #ending-badge{font-size:9px;}
+  #restart-btn{font-size:14px;padding:8px 24px;}
+
+  /* modals */
+  #wip-box{padding:24px 22px;max-width:82vw;gap:12px;}
+  #wip-title{font-size:20px;}
+  #wip-body{font-size:13px;}
+  #wip-proceed{font-size:14px;padding:9px 28px;}
+  #controls-box{padding:20px 22px;width:80vw;gap:14px;}
+  #controls-box h2{font-size:18px;}
+  .ctrl-key{min-width:36px;height:30px;font-size:11px;}
+  .ctrl-desc{font-size:14px;}
+  #controls-close{font-size:13px;padding:7px 22px;}
+}
+
 </style>
 </head>
 <body>
+
+<!-- Rotate prompt for portrait phones -->
+<div id="rotate-prompt">
+  <svg width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="14" y="4" width="28" height="48" rx="5" stroke="rgba(196,133,106,0.7)" stroke-width="2.5"/>
+    <circle cx="28" cy="44" r="2.5" fill="rgba(196,133,106,0.7)"/>
+    <path d="M6 22 Q6 6 22 6" stroke="rgba(196,133,106,0.5)" stroke-width="2" fill="none" stroke-dasharray="4 3" stroke-linecap="round"/>
+    <path d="M18 3 L22 6 L18 9" stroke="rgba(196,133,106,0.5)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+  <p>Please rotate your phone<br/>to landscape to play</p>
+</div>
+
 <div id="game">
 
   <!-- Title Screen -->
@@ -909,6 +987,13 @@ function restartGame() {
 }
 
 document.addEventListener('DOMContentLoaded', function(){
+  // Try to lock orientation to landscape on mobile
+  if (screen.orientation && screen.orientation.lock) {
+    screen.orientation.lock('landscape').catch(function(){
+      // silently fail — some browsers block this without user gesture
+    });
+  }
+
   gid('start-btn').addEventListener('click', startGame);
   gid('restart-btn').addEventListener('click', restartGame);
   gid('textbox').addEventListener('click', advanceScene);
