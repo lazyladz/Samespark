@@ -231,6 +231,57 @@ body{background:#0d0a06;display:flex;justify-content:center;align-items:center;m
 @keyframes bounce{0%,100%{height:4px}50%{height:12px}}
 #voice-indicator span{font-family:'Nunito',sans-serif;font-size:10px;color:rgba(253,246,236,0.6);letter-spacing:0.08em;}
 
+
+/* SCENE FADE TRANSITION */
+#scene-fade{
+  position:absolute;inset:0;
+  background:#0d0a06;
+  opacity:0;pointer-events:none;
+  z-index:10;
+  transition:opacity 0.45s ease;
+}
+#scene-fade.fade-in{opacity:1;}
+
+
+/* GRADUATION PHOTO GALLERY */
+#photo-gallery{
+  position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(10,7,4,0.92);
+  z-index:12;opacity:0;pointer-events:none;
+  transition:opacity 0.5s;
+  gap:0;
+}
+#photo-gallery.show{opacity:1;pointer-events:all;}
+.grad-photo{
+  width:0;overflow:hidden;
+  border:3px solid rgba(255,255,255,0.85);
+  box-shadow:0 8px 32px rgba(0,0,0,0.7);
+  transition:width 0.55s cubic-bezier(0.4,0,0.2,1), opacity 0.4s ease;
+  opacity:0;
+  flex-shrink:0;
+  background:#fff;
+  margin:0 10px;
+}
+.grad-photo img{
+  display:block;width:360px;height:240px;object-fit:cover;
+}
+.grad-photo.reveal{width:360px;opacity:1;}
+#flash-overlay{
+  position:absolute;inset:0;
+  background:white;opacity:0;pointer-events:none;z-index:13;
+  transition:opacity 0.08s ease;
+}
+#flash-overlay.flash{opacity:1;}
+#gallery-hint{
+  position:absolute;bottom:28px;left:50%;transform:translateX(-50%);
+  font-family:'Cormorant Garamond',serif;font-size:14px;font-style:italic;
+  color:rgba(253,246,236,0.55);letter-spacing:0.08em;
+  opacity:0;transition:opacity 0.5s;
+  white-space:nowrap;
+}
+#gallery-hint.show{opacity:1;}
+
 </style>
 </head>
 <body>
@@ -317,6 +368,23 @@ body{background:#0d0a06;display:flex;justify-content:center;align-items:center;m
   <canvas id="bg-canvas" width="900" height="506"></canvas>
   <img id="bg-img" src="" alt=""/>
 
+  <!-- Flash overlay -->
+  <div id="flash-overlay"></div>
+
+  <!-- Graduation photo gallery -->
+  <div id="photo-gallery">
+    <div class="grad-photo" id="gphoto1">
+      <img src="graduation1.png" alt=""/>
+    </div>
+    <div class="grad-photo" id="gphoto2">
+      <img src="graduation2.png" alt=""/>
+    </div>
+    <div id="gallery-hint">tap to continue</div>
+  </div>
+
+  <!-- Scene fade overlay -->
+  <div id="scene-fade"></div>
+
   <!-- Voice playing indicator -->
   <div id="voice-indicator">
     <div class="bars">
@@ -373,11 +441,14 @@ var CHARS = {
 
 // Scenes with real image files
 var BG_IMGS = {
-  classroom:  'classroom.png',
-  hallway:    'hallway.png',
-  danceprac:  'danceprac.png',
-  court:      'court.png',
-  swing:      'swing.png'
+  classroom:          'classroom.png',
+  hallway:            'hallway.png',
+  danceprac:          'danceprac.png',
+  court:              'court.png',
+  swing:              'swing.png',
+  sophiahallwayscene: 'sophiahallwayscene.png',
+  graduation1:        'graduation1.png',
+  graduation2:        'graduation2.png'
 };
 
 // ── BACKGROUND RENDERER ───────────────────────────────────────────
@@ -398,7 +469,33 @@ var AUDIO_DATA = {
   // Sophia group project lines
   sophiagrpprjtfirstline:          'sophiagrpprjtfirstline.mp3',
   sophiagrpprjtsecondline:         'sophiagrpprjtsecondline.mp3',
-  sophiagrpprjtthirdline:          'sophiagrpprjtthirdline.mp3'
+  sophiagrpprjtthirdline:          'sophiagrpprjtthirdline.mp3',
+  // Ethan hallway lines
+  ethanshallwayfirstline:          'ethanshallwayfirstline.mp3',
+  ethanshallwaysecondline:         'ethanshallwaysecondline.mp3',
+  ethanshallwaythirdline:          'ethanshallwaythirdline.mp3',
+  ethanshallwayfourthline:         'ethanshallwayfourthline.mp3',
+  ethanshallwayfifthline:          'ethanshallwayfifthline.mp3',
+  // Sophia hallway lines
+  sophiahallwayfirstline:          'sophiahallwayfirstline.mp3',
+  sophiahallwaysecondline:         'sophiahallwaysecondline.mp3',
+  // Ethan assembly lines
+  ethansassemblyfirstline:         'ethansassemblyfirstline.mp3',
+  ethansassemblysecondline:        'ethansassemblysecondline.mp3',
+  ethansassemblythirdline:         'ethansassemblythirdline.mp3',
+  ethansassemblyfourthline:        'ethansassemblyfourthline.mp3',
+  // Sophia assembly lines
+  sophiasassemblyfirstline:        'sophiasassemblyfirstline.mp3',
+  sophiasassemblysecondline:       'sophiasassemblysecondline.mp3',
+  // Ethan dance studio lines
+  ethansdancestudiofirstline:      'ethansdancestudiofirstline.mp3',
+  ethansdancestudiosecondline:     'ethansdancestudiosecondline.mp3',
+  ethansdancestudiothirdline:      'ethansdancestudiothirdline.mp3',
+  ethansdancestudiofourthline:     'ethansdancestudiofourthline.mp3',
+  ethansdancestudiofifthline:        'ethansdancestudiofifthline.mp3',
+  // Reina dance studio lines
+  reinadancestudiofirstline:       'reinadancestudiofirstline.mp3',
+  reinadancestudiosecondline:      'reinadancestudiosecondline.mp3'
 };
 
 // ── VOICE MAP ─────────────────────────────────────────────────────
@@ -419,7 +516,33 @@ var VOICE_MAP = {
   // Sophia group project lines (3 lines)
   ch1_confident_join:   'sophiagrpprjtfirstline',
   ch1_confident_join_c: 'sophiagrpprjtsecondline',
-  ch1_awkward_join:     'sophiagrpprjtthirdline'
+  ch1_awkward_join:     'sophiagrpprjtthirdline',
+  // Ethan hallway lines (5 lines)
+  ch1_hall1:            'ethanshallwayfirstline',
+  ch1_choice2:          'ethanshallwaysecondline',
+  ch1_hall2:            'ethanshallwaythirdline',
+  ch1_hall3:            'ethanshallwayfourthline',
+  ch1_hall_silent:      'ethanshallwayfifthline',
+  // Sophia hallway lines (2 lines)
+  ch1_hall_talks:       'sophiahallwayfirstline',
+  ch1_hall2b:           'sophiahallwaysecondline',
+  // Ethan assembly lines (4 lines)
+  ch1_dance1:           'ethansassemblyfirstline',
+  ch1_dance2:           'ethansassemblysecondline',
+  ch1_dance3:           'ethansassemblythirdline',
+  ch1_dance4b:          'ethansassemblyfourthline',
+  // Sophia assembly lines (2 lines)
+  ch1_dance4:           'sophiasassemblyfirstline',
+  ch1_dance4c:          'sophiasassemblysecondline',
+  // Ethan dance studio lines (5 lines)
+  ch1_prac1:            'ethansdancestudiofirstline',
+  ch1_prac2:            'ethansdancestudiosecondline',
+  ch1_prac3b:           'ethansdancestudiothirdline',
+  ch1_prac3d:           'ethansdancestudiofourthline',
+  ch1_prac4:            'ethansdancestudiofifthline',
+  // Reina dance studio lines (2 lines)
+  ch1_prac3:            'reinadancestudiofirstline',
+  ch1_prac3c:           'reinadancestudiosecondline'
 };
 
 // Tracks which line index within a multi-line file we are on
@@ -489,6 +612,91 @@ function stopVoice() {
   }
   var indicator = gid('voice-indicator');
   if (indicator) indicator.classList.remove('show');
+}
+
+
+
+// ── GRADUATION PHOTO GALLERY ──────────────────────────────────────
+var galleryOpen = false;
+var galleryCallback = null;
+
+function flashAndReveal(onDone) {
+  galleryCallback = onDone;
+  var flash = document.getElementById('flash-overlay');
+  var gallery = document.getElementById('photo-gallery');
+  var p1 = document.getElementById('gphoto1');
+  var p2 = document.getElementById('gphoto2');
+  var hint = document.getElementById('gallery-hint');
+
+  // Reset state
+  p1.classList.remove('reveal');
+  p2.classList.remove('reveal');
+  hint.classList.remove('show');
+  gallery.classList.remove('show');
+  flash.classList.remove('flash');
+
+  // Camera flash 1 — show photo 1
+  setTimeout(function(){
+    flash.style.transition = 'opacity 0.06s ease';
+    flash.classList.add('flash');
+    setTimeout(function(){
+      flash.style.transition = 'opacity 0.25s ease';
+      flash.classList.remove('flash');
+      gallery.classList.add('show');
+      p1.classList.add('reveal');
+    }, 80);
+  }, 400);
+
+  // Camera flash 2 — show photo 2
+  setTimeout(function(){
+    flash.style.transition = 'opacity 0.06s ease';
+    flash.classList.add('flash');
+    setTimeout(function(){
+      flash.style.transition = 'opacity 0.25s ease';
+      flash.classList.remove('flash');
+      p2.classList.add('reveal');
+      // Show tap hint after both photos visible
+      setTimeout(function(){
+        hint.classList.add('show');
+        galleryOpen = true;
+      }, 600);
+    }, 80);
+  }, 1400);
+}
+
+function closeGallery() {
+  if (!galleryOpen) return;
+  galleryOpen = false;
+  var gallery = document.getElementById('photo-gallery');
+  gallery.classList.remove('show');
+  if (galleryCallback) { galleryCallback(); galleryCallback = null; }
+}
+
+// Tap anywhere on gallery to close
+document.addEventListener('DOMContentLoaded', function(){
+  var gallery = document.getElementById('photo-gallery');
+  if (gallery) {
+    gallery.addEventListener('click', closeGallery);
+    gallery.addEventListener('touchend', function(e){
+      e.preventDefault();
+      closeGallery();
+    }, {passive:false});
+  }
+});
+
+// ── SCENE TRANSITION ─────────────────────────────────────────────
+var TRANSITION_SCENES = ['ch1_hall_silent'];
+
+function renderWithFade(sceneKey, callback) {
+  var fd = document.getElementById('scene-fade');
+  if (!fd) { callback(); return; }
+  fd.classList.add('fade-in');
+  setTimeout(function(){
+    callback();
+    setTimeout(function(){
+      fd.classList.remove('fade-in');
+    }, 80);
+  }, 460);
 }
 
 function drawBG(scene) {
@@ -633,9 +841,9 @@ var story = {
   ch1_hall2b:{bg:'hallway',speaker:'Sophia',left:'sophia',right:'ethan',
     dialogue:"'Honest enough. It's good — you'd probably like it.'",next:'ch1_hall3'},
   ch1_hall3:{bg:'hallway',speaker:'Ethan',left:'sophia',right:'ethan',
-    dialogue:"She went back to reading. But she hadn't told him to leave. He leaned against the wall and stayed. Five minutes of comfortable silence. He counted every second.",next:'ch1_dance_announce'},
-  ch1_hall_silent:{bg:'hallway',speaker:'Ethan',center:'ethan',
-    dialogue:"He kept walking. Glanced back once. She was still reading, unbothered. He spent the afternoon wishing he'd stopped.",next:'ch1_dance_announce'},
+    dialogue:"She went back to reading. But she hadn't told me to leave. I leaned against the wall and stayed. Five minutes of comfortable silence. I counted every second.",next:'ch1_dance_announce'},
+  ch1_hall_silent:{bg:'sophiahallwayscene',speaker:'Ethan',left:'ethan',
+    dialogue:"I kept walking. Glanced back once. She was still reading, unbothered. I spent the afternoon wishing I'd stopped.",next:'ch1_dance_announce'},
 
   ch1_dance_announce:{bg:'classroom',speaker:'',dialogue:"[ Two weeks later \u2014 morning assembly. ]",next:'ch1_dance1'},
   ch1_dance1:{bg:'classroom',speaker:'Ethan',center:'ethan',
@@ -674,7 +882,7 @@ var story = {
   ch1_prac6b:{bg:'danceprac',speaker:'Sophia',left:'sophia',right:'ethan',
     dialogue:"'Your feet go where your head tells them. So the problem is your head.'",next:'ch1_prac7'},
   ch1_prac7:{bg:'danceprac',speaker:'Ethan',left:'sophia',right:'ethan',
-    dialogue:"She said it plainly. No cruelty, just diagnosis. She went back to Marco. He stared at his water bottle and thought: she's probably right about everything.",next:'ch1_marco_drops'},
+    dialogue:"She said it plainly. No cruelty, just diagnosis. She went back to Marco. I stared at my water bottle and thought: she's probably right about everything.",next:'ch1_marco_drops'},
 
   ch1_marco_drops:{bg:'danceprac',speaker:'',dialogue:"[ One week before the competition. Marco misses his third straight practice. ]",next:'ch1_marco1'},
   ch1_marco1:{bg:'danceprac',speaker:'Marco',center:'ethan',
@@ -682,9 +890,9 @@ var story = {
   ch1_marco2:{bg:'danceprac',speaker:'Sophia',left:'sophia',right:'ethan',
     dialogue:"'Okay.' Just that. I'd already started recalculating.",next:'ch1_marco3'},
   ch1_marco3:{bg:'danceprac',speaker:'Ethan',left:'sophia',right:'ethan',
-    dialogue:"Rep: 'We reshuffle. Sophia with Ethan. Lea and Jake stay. Reina does the opening solo.' Everyone looked at Ethan. His first feeling was terror. His second \u2014 the one he tried to suppress \u2014 was dangerously close to excitement.",next:'ch1_partner_choice'},
+    dialogue:"Rep: 'We reshuffle. Sophia with Ethan. Lea and Jake stay. Reina does the opening solo.' Everyone looked at me. My first feeling was terror. My second \u2014 the one I tried to suppress \u2014 was dangerously close to excitement.",next:'ch1_partner_choice'},
   ch1_partner_choice:{bg:'danceprac',speaker:'Ethan',left:'sophia',right:'ethan',
-    dialogue:"Sophia was looking at him, waiting for his reaction.",
+    dialogue:"Sophia was looking at me, waiting for my reaction.",
     choices:[
       {text:"'I'll work as hard as you need me to.'",next:'ch1_partner_committed',consequence:"A quiet promise. She heard it."},
       {text:"'Are you sure you're okay with this?'",next:'ch1_partner_asks',consequence:"You asked her first. She noticed that."}
@@ -703,17 +911,17 @@ var story = {
   ch1_new_practice2c:{bg:'danceprac',speaker:'Sophia',left:'sophia',right:'ethan',
     dialogue:"'Looking everywhere except at me. In a waltz, your partner is your anchor. Look at me.'",next:'ch1_new_practice3'},
   ch1_new_practice3:{bg:'danceprac',speaker:'Ethan',left:'sophia',right:'ethan',
-    dialogue:"He looked at her. She held his gaze steadily \u2014 professional, focused, completely in control of what this was. He was not.",next:'ch1_new_practice4'},
+    dialogue:"I looked at her. She held my gaze steadily \u2014 professional, focused, completely in control of what this was. I was not.",next:'ch1_new_practice4'},
   ch1_new_practice4:{bg:'danceprac',speaker:'Ethan',
-    dialogue:"Day two: he stopped counting steps. Day three: she corrected him less. Day four: she said 'better' and he nearly walked into the mirror.",next:'ch1_new_practice5'},
+    dialogue:"Day two: I stopped counting steps. Day three: she corrected me less. Day four: she said 'better' and I nearly walked into the mirror.",next:'ch1_new_practice5'},
   ch1_new_practice5:{bg:'danceprac',speaker:'Ethan',left:'sophia',right:'ethan',
-    dialogue:"By Thursday she was laughing at his stumbles instead of wincing. That felt like a promotion.",next:'ch1_new_practice6'},
+    dialogue:"By Thursday she was laughing at my stumbles instead of wincing. That felt like a promotion.",next:'ch1_new_practice6'},
   ch1_new_practice6:{bg:'danceprac',speaker:'Ethan',left:'sophia',right:'ethan',
     dialogue:"By Friday \u2014 he wasn't thinking. He was just moving with her. The music, her hand in his, their reflection doubling in the long mirror. It felt like something he didn't have a word for yet.",next:'ch1_night_before'},
 
   ch1_night_before:{bg:'danceprac',speaker:'',dialogue:"[ The night before the competition. Final rehearsal. ]",next:'ch1_night1'},
   ch1_night1:{bg:'danceprac',speaker:'Ethan',left:'sophia',right:'ethan',
-    dialogue:"After the last run-through, she stepped back and looked at him.",next:'ch1_night1b'},
+    dialogue:"After the last run-through, she stepped back and looked at me.",next:'ch1_night1b'},
   ch1_night1b:{bg:'danceprac',speaker:'Sophia',left:'sophia',right:'ethan',
     dialogue:"'We actually got good.'",next:'ch1_night2'},
   ch1_night2:{bg:'danceprac',speaker:'Ethan',left:'sophia',right:'ethan',
@@ -721,7 +929,7 @@ var story = {
   ch1_night2b:{bg:'danceprac',speaker:'Sophia',left:'sophia',right:'ethan',
     dialogue:"'You did more than that.' A pause. 'You made it feel real.'",next:'ch1_night3'},
   ch1_night3:{bg:'danceprac',speaker:'Ethan',
-    dialogue:"He didn't know what she meant by real. He was afraid to ask, because whatever she meant \u2014 he felt it completely.",next:'ch1_night_choice'},
+    dialogue:"I didn't know what she meant by real. I was afraid to ask, because whatever she meant \u2014 I felt it completely.",next:'ch1_night_choice'},
   ch1_night_choice:{bg:'danceprac',speaker:'Ethan',left:'sophia',right:'ethan',
     dialogue:"She's packing her bag. He has maybe thirty seconds before the moment is gone.",
     choices:[
@@ -740,30 +948,30 @@ var story = {
   ch1_confess5:{bg:'danceprac',speaker:'Sophia',left:'sophia',right:'ethan',
     dialogue:"'Let's just get through tomorrow first. Okay? One thing at a time.'",next:'ch1_confess6'},
   ch1_confess6:{bg:'danceprac',speaker:'Ethan',left:'sophia',right:'ethan',
-    dialogue:"He nodded. What else could he do. She gave him a small, careful smile \u2014 not a yes, not a no. Something more complicated than either.",next:'ch1_confess7'},
+    dialogue:"I nodded. What else could I do. She gave me a small, careful smile \u2014 not a yes, not a no. Something more complicated than either.",next:'ch1_confess7'},
   ch1_confess7:{bg:'danceprac',speaker:'Ethan',
-    dialogue:"She left. He stood alone in the studio, looking at his reflection in the long mirror. He'd said it. She'd been kind about it. And somehow \u2014 that was almost worse than a clean rejection.",
+    dialogue:"She left. I stood alone in the studio, looking at my reflection in the long mirror. I'd said it. She'd been kind about it. And somehow \u2014 that was almost worse than a clean rejection.",
     next:'ch1_comp_day',setState:{sophiaStudyFirst:true}},
   ch1_night_safe:{bg:'danceprac',speaker:'Sophia',left:'sophia',right:'ethan',
     dialogue:"'You were a good partner, Ethan.'",next:'ch1_night_safe2'},
   ch1_night_safe2:{bg:'danceprac',speaker:'Ethan',
-    dialogue:"He watched her leave. He had a hundred things he could have said. He said none of them. Some cowardice is very quiet.",next:'ch1_comp_day'},
+    dialogue:"I watched her leave. I had a hundred things I could have said. I said none of them. Some cowardice is very quiet.",next:'ch1_comp_day'},
 
   ch1_comp_day:{bg:'court',speaker:'',dialogue:"[ Competition night \u2014 the gymnasium, transformed. ]",next:'ch1_comp1'},
   ch1_comp1:{bg:'court',speaker:'Ethan',center:'ethandance',
     dialogue:"The gym was unrecognizable. Blue and gold drapes, fairy lights from the rafters, balloons near the bleachers. Someone's idea of magic, almost reaching it.",next:'ch1_comp2'},
   ch1_comp2:{bg:'court',speaker:'Ethan',center:'ethandance',
-    dialogue:"Four teams had already performed. All polished, rehearsed, sure of themselves. Ethan stood in the wings feeling his palms become their own weather system.",next:'ch1_comp3'},
+    dialogue:"Four teams had already performed. All polished, rehearsed, sure of themselves. I stood in the wings feeling my palms become their own weather system.",next:'ch1_comp3'},
   ch1_comp3:{bg:'court',speaker:'Ethan',center:'ethandance',
-    dialogue:"Sophia appeared beside him — white off-shoulder dress, hair loose, a gold necklace catching the light. He forgot, for a moment, how to stand normally.",next:'ch1_comp3b'},
+    dialogue:"Sophia appeared beside me — white off-shoulder dress, hair loose, a gold necklace catching the light. I forgot, for a moment, how to stand normally.",next:'ch1_comp3b'},
   ch1_comp3b:{bg:'court',speaker:'Sophia',left:'sophiadance',right:'ethandance',
     dialogue:"'You clean up well.'",next:'ch1_comp3b2'},
   ch1_comp3b2:{bg:'court',speaker:'Ethan',left:'sophiadance',right:'ethandance',
-    dialogue:"'Thanks. You look...' He stopped himself.",next:'ch1_comp3c'},
+    dialogue:"'Thanks. You look...' I stopped myself.",next:'ch1_comp3c'},
   ch1_comp3c:{bg:'court',speaker:'Sophia',left:'sophiadance',right:'ethandance',
     dialogue:"'I look what?'",next:'ch1_comp3d'},
   ch1_comp3d:{bg:'court',speaker:'Ethan',left:'sophiadance',right:'ethandance',
-    dialogue:"He wanted to say: like you've always looked, and it's never been fair. He said: 'Really good.'",next:'ch1_comp3e'},
+    dialogue:"I wanted to say: like you've always looked, and it's never been fair. Instead I said: 'Really good.'",next:'ch1_comp3e'},
   ch1_comp3e:{bg:'court',speaker:'Sophia',left:'sophiadance',right:'ethandance',
     dialogue:"'Good enough to win?'",next:'ch1_comp3f'},
   ch1_comp3f:{bg:'court',speaker:'Ethan',left:'sophiadance',right:'ethandance',
@@ -777,7 +985,7 @@ var story = {
   ch1_comp6:{bg:'court',speaker:'Ethan',left:'sophiadance',right:'ethandance',
     dialogue:"The music started. A slow waltz \u2014 unhurried, like it had all the time in the world.",next:'ch1_comp7'},
   ch1_comp7:{bg:'court',speaker:'Ethan',left:'sophiadance',right:'ethandance',
-    dialogue:"He watched her. And moved. And for once, his body did exactly what his heart asked.",next:'ch1_comp8'},
+    dialogue:"I watched her. And moved. And for once, my body did exactly what my heart asked.",next:'ch1_comp8'},
   ch1_comp8:{bg:'court',speaker:'Ethan',
     dialogue:"In the second verse he realized: he wasn't performing. He wasn't pretending. He was just there \u2014 completely, quietly there \u2014 with her. It felt like the truest thing he'd ever done.",next:'ch1_comp9'},
   ch1_comp9:{bg:'court',speaker:'',left:'sophiadance',right:'ethandance',
@@ -787,28 +995,28 @@ var story = {
   ch1_win1:{bg:'court',speaker:'Sophia',left:'sophiadance',right:'ethandance',
     dialogue:"I grabbed his arm \u2014 pure surprise. 'We won!' I couldn't stop laughing.",next:'ch1_win2'},
   ch1_win2:{bg:'court',speaker:'Ethan',left:'sophiadance',right:'ethandance',
-    dialogue:"He looked at her in that moment \u2014 the lights, the noise, her unguarded laugh \u2014 and the spark didn't flicker. It settled. Like it had found a place to live.",next:'ch1_win_choice'},
+    dialogue:"I looked at her in that moment \u2014 the lights, the noise, her unguarded laugh \u2014 and the spark didn't flicker. It settled. Like it had found a place to live.",next:'ch1_win_choice'},
   ch1_win_choice:{bg:'court',speaker:'Ethan',left:'sophiadance',right:'ethandance',
-    dialogue:"The crowd is still cheering. She's still holding his arm. He has about three seconds.",
+    dialogue:"The crowd is still cheering. She's still holding my arm. I have about three seconds.",
     choices:[
       {text:"'We make a good team.'",next:'ch1_win_team',setState:{danceClose:true}},
       {text:"Just let it be. Say nothing.",next:'ch1_win_silent'}
     ]},
   ch1_win_team:{bg:'court',speaker:'Ethan',left:'sophiadance',right:'ethandance',
-    dialogue:"She glanced up at him. The laughter hadn't quite left her face.",next:'ch1_win_team_b'},
+    dialogue:"She glanced up at me. The laughter hadn't quite left her face.",next:'ch1_win_team_b'},
   ch1_win_team_b:{bg:'court',speaker:'Sophia',left:'sophiadance',right:'ethandance',
     dialogue:"'Yeah. We do.'",next:'ch1_after_comp'},
   ch1_win_silent:{bg:'court',speaker:'Ethan',
-    dialogue:"He said nothing. She looked up after a moment. Their eyes met. Some things get communicated anyway.",next:'ch1_after_comp'},
+    dialogue:"I said nothing. She looked up after a moment. Our eyes met. Some things get communicated anyway.",next:'ch1_after_comp'},
 
   ch1_after_comp:{bg:'swing',speaker:'Ethan',
     dialogue:"The team celebrated outside \u2014 bad music from someone's phone, mostly-sugar snacks, everyone running on pure adrenaline. One by one, people drifted off.",next:'ch1_after2'},
   ch1_after2:{bg:'swing',speaker:'Ethan',left:'sophia',right:'ethan',
-    dialogue:"Eventually it was just him and Sophia, sitting on the steps near the back gate, looking up at the hazy night sky.",next:'ch1_after3'},
+    dialogue:"Eventually it was just me and Sophia, sitting on the steps near the back gate, looking up at the hazy night sky.",next:'ch1_after3'},
   ch1_after3:{bg:'swing',speaker:'Sophia',left:'sophia',right:'ethan',
     dialogue:"'Can I ask you something?' She was looking at the sky, not at him. 'Yeah.' 'When you're up there dancing \u2014 what are you actually thinking about?'",next:'ch1_after_choice'},
   ch1_after_choice:{bg:'swing',speaker:'Ethan',left:'sophia',right:'ethan',
-    dialogue:"He knew exactly what he'd been thinking about. The question was whether to say it.",
+    dialogue:"I knew exactly what I'd been thinking about. The question was whether to say it.",
     choices:[
       {text:"'You. I was thinking about you the whole time.'",next:'ch1_honest_answer',consequence:"Honest again. You can't seem to stop."},
       {text:"'Not stepping on your feet.'",next:'ch1_deflect_answer'}
@@ -818,12 +1026,40 @@ var story = {
   ch1_honest2:{bg:'swing',speaker:'Sophia',left:'sophia',right:'ethan',
     dialogue:"'I do think you're a genuinely good person. I appreciate what you feel. But I need you to not put that on me right now. Okay?'",next:'ch1_honest3'},
   ch1_honest3:{bg:'swing',speaker:'Ethan',left:'sophia',right:'ethan',
-    dialogue:"'Okay,' he said. And meant it. Because she'd said it without cruelty. Because the honest version of her was better than a comfortable lie.",next:'ch1_chapter_close'},
+    dialogue:"'Okay.' And I meant it. Because she'd said it without cruelty. Because the honest version of her was better than a comfortable lie.",next:'ch1_grad_setup'},
   ch1_deflect_answer:{bg:'swing',speaker:'Sophia',left:'sophia',right:'ethan',
     dialogue:"'Good answer.' I stood and dusted off my dress. 'You did really well tonight, Ethan. Seriously.'",next:'ch1_deflect2'},
   ch1_deflect2:{bg:'swing',speaker:'Ethan',
-    dialogue:"He watched her walk away. He still had the real answer saved somewhere. Unsaid, but not unfelt.",next:'ch1_chapter_close'},
+    dialogue:"I watched her walk away. I still had the real answer saved somewhere. Unsaid, but not unfelt.",next:'ch1_grad_setup'},
 
+
+  ch1_grad_setup:{bg:'swing',speaker:'Ethan',left:'sophia',right:'ethan',
+    dialogue:"Junior high graduation day. Everyone in gowns, cameras everywhere, families spilling across the lawn.",
+    next:'ch1_grad_ethan'},
+  ch1_grad_ethan:{bg:'swing',speaker:'Ethan',left:'sophia',right:'ethan',
+    dialogue:"I found her near the back gate — same spot from the night of the competition. She was looking at her phone.",
+    next:'ch1_grad_ask'},
+  ch1_grad_ask:{bg:'swing',speaker:'Ethan',left:'sophia',right:'ethan',
+    dialogue:"'Hey — you're switching schools after this, right?' She looked up. 'Yeah. Why?'",
+    next:'ch1_grad_ask2'},
+  ch1_grad_ask2:{bg:'swing',speaker:'Ethan',left:'sophia',right:'ethan',
+    dialogue:"'Can we take a picture? Before everything changes.'",
+    next:'ch1_grad_sophia_react'},
+  ch1_grad_sophia_react:{bg:'swing',speaker:'Sophia',left:'sophia',right:'ethan',
+    dialogue:"She looked at me for a moment. Then she smiled — the kind that reaches her eyes. 'Yeah. Of course.'",
+    next:'ch1_grad_photo'},
+  ch1_grad_photo:{bg:'swing',speaker:'',
+    dialogue:"[ They stood side by side in the afternoon light. Someone counted to three. ]",
+    next:'ch1_grad_photo2',special:'graduation_flash'},
+  ch1_grad_photo2:{bg:'swing',speaker:'',
+    dialogue:"[ Then again — this time with caps on, properly. ]",
+    next:'ch1_grad_after',special:'graduation_flash2'},
+  ch1_grad_after:{bg:'swing',speaker:'Ethan',left:'sophia',right:'ethan',
+    dialogue:"'Different schools doesn't mean we stop being friends, right?' She tilted her head. 'We'll text.'",
+    next:'ch1_grad_after2'},
+  ch1_grad_after2:{bg:'swing',speaker:'Ethan',
+    dialogue:"We'll text. Two words. I held onto them like a promise.",
+    next:'ch1_chapter_close'},
   ch1_chapter_close:{bg:'swing',speaker:'Ethan',
     dialogue:"Junior high ended without a resolution. The spark was real. Sophia was focused, grounded, living somewhere he wasn't allowed in yet.",next:'ch1_close2'},
   ch1_close2:{bg:'swing',speaker:'Ethan',
@@ -837,26 +1073,36 @@ var story = {
   // ══════════════════════════════════════════════════════════════
   ch2_intro:{bg:'classroom',chapter:{num:'Chapter Two',name:'\u201cSenior High School\u201d'},next:'ch2_1',wip:true},
 
-  ch2_1:{bg:'hallway',speaker:'Ethan',center:'ethan',
-    dialogue:"Senior high school. Same homeroom. She was the same \u2014 focused, unhurried, living in her own orbit. I was still in hers, trying to look like I wasn't.",next:'ch2_2'},
-  ch2_2:{bg:'hallway',speaker:'Sophia',left:'sophia',right:'ethan',
-    dialogue:"'Ethan \u2014 you're going to the inter-school debate? I'm speaking.'",next:'ch2_choice1'},
-  ch2_choice1:{bg:'hallway',speaker:'Ethan',left:'sophia',right:'ethan',
-    dialogue:"I was not going. I had not been planning to go. My entire afternoon just changed.",
+  ch2_1:{bg:'evening_street',speaker:'Ethan',center:'ethan',
+    dialogue:"Senior high. Different schools now \u2014 hers a few streets over from mine. We texted sometimes. Met up when the timing worked. It wasn't nothing. But it wasn't enough either.",next:'ch2_2'},
+  ch2_2:{bg:'evening_street',speaker:'Ethan',center:'ethan',
+    dialogue:"A Saturday afternoon, three weeks into the new term. I was walking past the community board outside the civic hall when I heard my name.",next:'ch2_3'},
+  ch2_3:{bg:'evening_street',speaker:'Sophia',left:'sophia',right:'ethan',
+    dialogue:"'Ethan!' She was holding a paper cup, bag over one shoulder. Like she'd just come from somewhere and hadn't decided where she was going next.",next:'ch2_4'},
+  ch2_4:{bg:'evening_street',speaker:'Ethan',left:'sophia',right:'ethan',
+    dialogue:"'Sophia.' Something in my chest did the usual thing.",next:'ch2_5'},
+  ch2_5:{bg:'evening_street',speaker:'Sophia',left:'sophia',right:'ethan',
+    dialogue:"She tilted her head at the board behind me. 'Is that your school on the debate lineup?'",next:'ch2_6'},
+  ch2_6:{bg:'evening_street',speaker:'Ethan',left:'sophia',right:'ethan',
+    dialogue:"I turned around. She was right \u2014 my school's name was third on the list. I hadn't even known we were competing.",next:'ch2_choice1'},
+  ch2_choice1:{bg:'evening_street',speaker:'Ethan',left:'sophia',right:'ethan',
+    dialogue:"She was watching me with that look \u2014 half amused, half something harder to read.",
     choices:[
-      {text:"'Yeah \u2014 I'll be there.'",next:'ch2_debate_yes'},
-      {text:"'I didn't know about it.' (Be honest)",next:'ch2_debate_honest'}
+      {text:"'Yeah. I'm actually one of the speakers.'",next:'ch2_debate_yes'},
+      {text:"'Honestly? I had no idea we were in it.'",next:'ch2_debate_honest'}
     ]},
-  ch2_debate_yes:{bg:'hallway',speaker:'Sophia',left:'sophia',right:'ethan',
-    dialogue:"'Oh. Okay.' I nodded and walked off.",next:'ch2_debate_result'},
-  ch2_debate_honest:{bg:'hallway',speaker:'Sophia',left:'sophia',right:'ethan',
-    dialogue:"'Well, now you do.' Said evenly. But she looked back once, briefly, as she walked away.",next:'ch2_debate_result'},
-  ch2_debate_result:{bg:'classroom',speaker:'Ethan',
-    dialogue:"He went. She was remarkable \u2014 precise, sharp, completely at ease. He sat in the back and felt something solidify in his chest. It had been almost a year. The feeling had not faded.",next:'ch2_letter'},
+  ch2_debate_yes:{bg:'evening_street',speaker:'Sophia',left:'sophia',right:'ethan',
+    dialogue:"Her eyebrows went up slightly. 'Really. Huh.' A beat. 'I'll be watching then.'",next:'ch2_debate_result'},
+  ch2_debate_honest:{bg:'evening_street',speaker:'Sophia',left:'sophia',right:'ethan',
+    dialogue:"She laughed \u2014 short and genuine. 'That's so you.' She glanced at the board again. 'Well. Now you know.'",next:'ch2_debate_result'},
+  ch2_debate_result:{bg:'evening_street',speaker:'Ethan',
+    dialogue:"She left after a few more minutes. I stood there long after she'd turned the corner \u2014 looking at my school's name on a board I'd walked past a hundred times without noticing.",next:'ch2_debate_result2'},
+  ch2_debate_result2:{bg:'evening_street',speaker:'Ethan',
+    dialogue:"I went to the debate. She wasn't competing \u2014 just there, watching from across the auditorium. We didn't talk after. But I knew she was there. And that felt like something.",next:'ch2_letter'},
   ch2_letter:{bg:'classroom',speaker:'Ethan',center:'ethan',
     dialogue:"That night he wrote a note. Nothing dramatic. Just: 'You were great today.' He held it for four days without doing anything with it.",next:'ch2_choice2'},
   ch2_choice2:{bg:'hallway',speaker:'Ethan',
-    dialogue:"He passes her locker every morning. The note has been in his pocket all week.",
+    dialogue:"I pass her locker every morning. The note has been in my pocket all week.",
     choices:[
       {text:"Slip it through the locker vent.",next:'ch2_note_left',consequence:"Done. Whatever happens next, you did something real.",setState:{wroteNote:true}},
       {text:"Keep it. Too exposed.",next:'ch2_note_kept'}
@@ -864,7 +1110,7 @@ var story = {
   ch2_note_left:{bg:'hallway',speaker:'Sophia',left:'sophia',right:'ethan',
     dialogue:"I found him later. 'Was that from you?' He nodded. I folded it carefully. 'That was kind, Ethan.'",next:'ch2_skip_to_senior'},
   ch2_note_kept:{bg:'hallway',speaker:'Ethan',center:'ethan',
-    dialogue:"He kept it in his notebook. Page forty-two. Every few months he'd find it and feel vaguely embarrassed at himself.",next:'ch2_skip_to_senior'},
+    dialogue:"I kept it in my notebook. Page forty-two. Every few months I'd find it and feel vaguely embarrassed at myself.",next:'ch2_skip_to_senior'},
   ch2_skip_to_senior:{bg:'swing',speaker:'Ethan',
     dialogue:"Two more years moved past. We stayed close but never crossed anything. She stayed focused \u2014 grades, programs, the future. I stayed focused on her. It was not an even equation.",next:'ch2_senior'},
   ch2_senior:{bg:'festival',speaker:'Ethan',center:'ethan',
@@ -880,9 +1126,9 @@ var story = {
   ch2_festival1e:{bg:'festival',speaker:'Sophia',left:'sophia',right:'ethan',
     dialogue:"'No. Just sad.'",next:'ch2_festival2'},
   ch2_festival2:{bg:'festival',speaker:'Ethan',
-    dialogue:"She pulled him toward the lantern stalls and he went, helplessly, like he always did.",next:'ch2_choice3'},
+    dialogue:"She pulled me toward the lantern stalls and I went, helplessly, like I always did.",next:'ch2_choice3'},
   ch2_choice3:{bg:'festival',speaker:'Ethan',left:'sophia',right:'ethan',
-    dialogue:"The night is winding down. Last quiet moment before everything scatters. She's looking at the lanterns, not at him.",
+    dialogue:"The night is winding down. Last quiet moment before everything scatters. She's looking at the lanterns, not at me.",
     choices:[
       {text:"'Sophia \u2014 I've liked you since junior high.'",next:'ch2_final_hs_confess',consequence:"You said the whole thing. All of it.",setState:{confessedGrade9:true}},
       {text:"'Tonight was good. Thank you.'",next:'ch2_safe_end'}
@@ -900,13 +1146,13 @@ var story = {
   ch2_confess4:{bg:'festival',speaker:'Sophia',left:'sophia',right:'ethan',
     dialogue:"'Starting something right before everything changes isn't fair. To either of us.'",next:'ch2_confess5'},
   ch2_confess5:{bg:'festival',speaker:'Ethan',left:'sophia',right:'ethan',
-    dialogue:"'So what \u2014 we just don't?' He heard how small his voice sounded. She looked at the lanterns. 'I think it's the honest thing to do.'",next:'ch2_confess6'},
+    dialogue:"'So what \u2014 we just don't?' I heard how small my voice sounded.",next:'ch2_confess6'},
   ch2_confess6:{bg:'festival',speaker:'Ethan',
-    dialogue:"He stood there for a long time after she left. The lanterns kept floating upward, indifferent. He watched them until they disappeared.",next:'ch2_graduation'},
+    dialogue:"I stood there for a long time after she left. The lanterns kept floating upward, indifferent. I watched them until they disappeared.",next:'ch2_graduation'},
   ch2_safe_end:{bg:'festival',speaker:'Sophia',left:'sophia',right:'ethan',
     dialogue:"'Me too.' She looked up at a lantern drifting loose from its tether. 'Me too, Ethan.'",next:'ch2_safe_end_b'},
   ch2_safe_end_b:{bg:'festival',speaker:'Ethan',left:'sophia',right:'ethan',
-    dialogue:"He didn't ask what she meant. He carried it anyway.",next:'ch2_graduation'},
+    dialogue:"I didn't ask what she meant. I carried it anyway.",next:'ch2_graduation'},
   ch2_graduation:{bg:'swing',speaker:'Ethan',
     dialogue:"Graduation. One quick hug in the crowd. She smelled like the same shampoo she'd always used. He let go before he wanted to. He carried everything unsaid into whatever came next.",next:'ch3_intro'},
 
@@ -929,11 +1175,11 @@ var story = {
       {text:"'Maybe another time.' (Keep distance)",next:'ch3_maya_no'}
     ]},
   ch3_maya_yes:{bg:'cafe',speaker:'Ethan',left:'maya',right:'ethan',
-    dialogue:"They studied together for weeks. She made him laugh harder than anyone had in years. He started to wonder if this was what moving on felt like.",next:'ch3_maya_end'},
+    dialogue:"We studied together for weeks. She made me laugh harder than anyone had in years. I started to wonder if this was what moving on felt like.",next:'ch3_maya_end'},
   ch3_maya_no:{bg:'cafe',speaker:'Ethan',center:'ethan',
-    dialogue:"He kept her at a polite distance. She moved on. He told himself it was sensible. It was mostly fear.",next:'ch3_camille1'},
+    dialogue:"I kept her at a polite distance. She moved on. I told myself it was sensible. It was mostly fear.",next:'ch3_camille1'},
   ch3_maya_end:{bg:'park',speaker:'Ethan',left:'maya',right:'ethan',
-    dialogue:"Six months in \u2014 he caught himself measuring her laugh against one he remembered. Felt guilty. Knew.",next:'ch3_choice2'},
+    dialogue:"Six months in \u2014 I caught myself measuring her laugh against one I remembered. Felt guilty. Knew.",next:'ch3_choice2'},
   ch3_choice2:{bg:'park',speaker:'Maya',left:'maya',right:'ethan',
     dialogue:"'Are you actually in this with me?'",
     choices:[
@@ -961,7 +1207,7 @@ var story = {
   ch3_camille_close:{bg:'cafe',speaker:'Ethan',
     dialogue:"They grew close over months of late nights. She was everything he thought he wanted. Almost.",next:'ch3_camille_end'},
   ch3_camille_distant:{bg:'cafe',speaker:'Ethan',
-    dialogue:"He kept the distance. She stopped reaching. He let her go without meaning to.",next:'ch3_lia1'},
+    dialogue:"I kept the distance. She stopped reaching. I let her go without meaning to.",next:'ch3_lia1'},
   ch3_camille_end:{bg:'cafe',speaker:'Ethan',
     dialogue:"But in quiet moments he'd measure the feeling \u2014 and it never quite matched the one he'd been carrying since he was seventeen.",next:'ch3_lia1'},
   ch3_lia1:{bg:'cafe',speaker:'Ethan',center:'lia',
@@ -979,28 +1225,28 @@ var story = {
   ch3_lia_deflect:{bg:'cafe',speaker:'Ethan',
     dialogue:"She accepted it. For a while. The truth surfaced anyway.",next:'ch3_lia_end'},
   ch3_lia_end:{bg:'evening_street',speaker:'Ethan',center:'ethan',
-    dialogue:"He stood outside that night and finally said it plainly: he had been looking for the same spark in every person he'd ever let close. And he hadn't found it \u2014 because it wasn't lost. It was just somewhere specific.",next:'ch4_intro'},
+    dialogue:"I stood outside that night and finally said it plainly: I had been looking for the same spark in every person I'd ever let close. And I hadn't found it \u2014 because it wasn't lost. It was just somewhere specific.",next:'ch4_intro'},
 
   // ══════════════════════════════════════════════════════════════
   // CHAPTER 4 — THE PRESENT
   // ══════════════════════════════════════════════════════════════
   ch4_intro:{bg:'evening_street',chapter:{num:'Chapter Four',name:'\u201cThe Same Street\u201d'},next:'ch4_1'},
   ch4_1:{bg:'evening_street',speaker:'Ethan',center:'ethan',
-    dialogue:"A regular Tuesday. Same route home. Same city that had quietly consumed his twenties.",next:'ch4_2'},
+    dialogue:"A regular Tuesday. Same route home. Same city that had quietly consumed my twenties.",next:'ch4_2'},
   ch4_2:{bg:'evening_street',speaker:'Sophia',left:'sophia',right:'ethan',
     dialogue:"'Ethan. Oh my God \u2014 Ethan!'",next:'ch4_3'},
   ch4_3:{bg:'evening_street',speaker:'Ethan',left:'sophia',right:'ethan',
-    dialogue:"He stopped. Turned around. Different and exactly the same.",next:'ch4_4'},
+    dialogue:"I stopped. Turned around. Different and exactly the same.",next:'ch4_4'},
   ch4_4:{bg:'evening_street',speaker:'Sophia',left:'sophia',right:'ethan',
     dialogue:"'It's been years. You look the same. Well \u2014 a little more tired.' 'Thanks.' 'I mean it kindly.'",next:'ch4_5'},
   ch4_5:{bg:'evening_street',speaker:'Ethan',left:'sophia',right:'ethan',
     dialogue:"And there it was. That warmth. The exact same one \u2014 like it had been kept carefully somewhere and handed back without a scratch.",next:'ch4_6'},
   ch4_6:{bg:'cafe',speaker:'Ethan',left:'sophia',right:'ethan',
-    dialogue:"They ended up in a caf\u00e9, as if gravity arranged it. She wrapped her hands around her cup and looked at him the way she used to \u2014 assessing, interested, unhurried.",next:'ch4_7'},
+    dialogue:"We ended up in a caf\u00e9, as if gravity arranged it. She wrapped her hands around her cup and looked at me the way she used to \u2014 assessing, interested, unhurried.",next:'ch4_7'},
   ch4_7:{bg:'cafe',speaker:'Sophia',left:'sophia',right:'ethan',
     dialogue:"'I've thought about high school lately. The dance competition, actually. That's one of my clearest memories from that whole year.'",next:'ch4_choice1'},
   ch4_choice1:{bg:'cafe',speaker:'Ethan',left:'sophia',right:'ethan',
-    dialogue:"After all this time \u2014 she'd kept that too. He felt something shift in his chest.",
+    dialogue:"After all this time \u2014 she'd kept that too. I felt something shift in my chest.",
     choices:[
       {text:"'Mine too. It changed something for me.'",next:'ch4_open_up'},
       {text:"'Yeah. It was a good night.'",next:'ch4_deflect_again'}
@@ -1016,7 +1262,7 @@ var story = {
   ch4_sophia_truth2:{bg:'cafe',speaker:'Sophia',left:'sophia',right:'ethan',
     dialogue:"'I've spent a lot of time wondering if that was actually as reasonable as I told myself.' She looked down at her cup. 'I don't think it was.'",next:'ch4_final_choice'},
   ch4_final_choice:{bg:'cafe',speaker:'Ethan',left:'sophia',right:'ethan',
-    dialogue:"He had waited years for something like this. He had no idea what to do with it now that it was here.",
+    dialogue:"I had waited years for something like this. I had no idea what to do with it now that it was here.",
     choices:[
       {text:"'I'd have waited longer. I still would.'",next:'end_a1'},
       {text:"'I needed to hear that. But I'm not sure where that leaves us.'",next:'end_b1'},
@@ -1045,7 +1291,7 @@ var story = {
 
   // ENDING C
   end_c1:{bg:'cafe',speaker:'Ethan',left:'sophia',right:'ethan',
-    dialogue:"He didn't say anything. He reached across the table and placed his hand near hers. Not taking it \u2014 just offering.",next:'end_c2'},
+    dialogue:"I didn't say anything. I reached across the table and placed my hand near hers. Not taking it \u2014 just offering.",next:'end_c2'},
   end_c2:{bg:'cafe',speaker:'Sophia',left:'sophia',right:'ethan',
     dialogue:"I looked down at his hand. Then I turned mine over, slowly, and let our fingers rest together in the quiet.",next:'end_c3'},
   end_c3:{bg:'cafe',speaker:'Ethan',
@@ -1130,6 +1376,37 @@ function renderScene() {
       gid('ending-screen').classList.add('show');
     }, 700); return;
   }
+  // Special: graduation photo flash
+  if (scene.special === 'graduation_flash') {
+    drawBG(scene.bg || 'swing');
+    gid('speaker').textContent = '';
+    gid('dialogue').textContent = '';
+    gid('next-hint').classList.remove('show');
+    stopVoice();
+    flashAndReveal(function(){
+      currentScene = scene.next;
+      renderScene();
+    });
+    return;
+  }
+  if (scene.special === 'graduation_flash2') {
+    drawBG(scene.bg || 'swing');
+    gid('speaker').textContent = '';
+    gid('dialogue').textContent = '';
+    gid('next-hint').classList.remove('show');
+    stopVoice();
+    // Use graduation2 for second photo
+    document.getElementById('gphoto1').querySelector('img').src = 'graduation2.png';
+    document.getElementById('gphoto2').querySelector('img').src = 'graduation1.png';
+    flashAndReveal(function(){
+      // Reset photos back to original order
+      document.getElementById('gphoto1').querySelector('img').src = 'graduation1.png';
+      document.getElementById('gphoto2').querySelector('img').src = 'graduation2.png';
+      currentScene = scene.next;
+      renderScene();
+    });
+    return;
+  }
   var left = scene.left || null, right = scene.right || null, center = scene.center || null;
   var spk = (scene.speaker || '').toLowerCase();
   function charBase(n){ return n ? n.replace('dance','') : n; }
@@ -1181,6 +1458,7 @@ function goBack() {
 }
 
 function advanceScene() {
+  if (galleryOpen) { closeGallery(); return; }
   if (gid('choices').classList.contains('show')) return;
   if (isTyping) {
     // Just finish typing — do NOT restart voice, it's already playing
@@ -1194,7 +1472,16 @@ function advanceScene() {
   // Stop current voice then move to next scene
   stopVoice();
   var scene = story[currentScene];
-  if (scene && scene.next) { currentScene = scene.next; renderScene(); }
+  if (scene && scene.next) {
+    var nextKey = scene.next;
+    if (TRANSITION_SCENES.indexOf(nextKey) !== -1) {
+      currentScene = nextKey;
+      renderWithFade(nextKey, function(){ renderScene(); });
+    } else {
+      currentScene = nextKey;
+      renderScene();
+    }
+  }
 }
 
 function startGame() {
@@ -1260,16 +1547,26 @@ document.addEventListener('DOMContentLoaded', function(){
 
   // Mobile tap zones
   var tapLeft = gid('tap-left');
+  var touchLock = false;
+  function touchDebounce(fn) {
+    if (touchLock) return;
+    touchLock = true;
+    fn();
+    setTimeout(function(){ touchLock = false; }, 300);
+  }
   if (tapLeft) {
     tapLeft.addEventListener('click', function(){ goBack(); });
-    tapLeft.addEventListener('touchend', function(e){ e.preventDefault(); goBack(); },{passive:false});
+    tapLeft.addEventListener('touchend', function(e){
+      e.preventDefault();
+      touchDebounce(goBack);
+    },{passive:false});
   }
 
   // Prevent double-fire on textbox for mobile
   gid('textbox').addEventListener('touchend', function(e){
-    // only fire if tap is on textbox itself (right side already handled)
     e.preventDefault();
-    advanceScene();
+    e.stopPropagation();
+    touchDebounce(advanceScene);
   },{passive:false});
 
   // Prevent context menu / long press on game
@@ -1280,12 +1577,12 @@ document.addEventListener('DOMContentLoaded', function(){
     if (e.code === 'Space' || e.code === 'KeyE') {
       keyLock = true;
       advanceScene();
-      setTimeout(function(){ keyLock = false; }, 180);
+      setTimeout(function(){ keyLock = false; }, 250);
     }
     if (e.code === 'KeyQ') {
       keyLock = true;
       goBack();
-      setTimeout(function(){ keyLock = false; }, 180);
+      setTimeout(function(){ keyLock = false; }, 250);
     }
   });
 });
