@@ -77,7 +77,7 @@ ETHAN         'I thought I was freestyling.'
 
 ETHAN         Across the studio, Sophia and Marco moved like they'd been partners for years. Clean, effortless. I kept glancing at the mirror and catching myself watching them instead of my own feet.
 
-  [  Water break.  ]
+  [  Water break.  ] ethansdancestudiofifthline:        'ethansdancestudiofifthline.mp3',
 
 SOPHIA        Sophia walked over while he refilled his bottle. 'You're overthinking it. You watch your feet too much.'
 
